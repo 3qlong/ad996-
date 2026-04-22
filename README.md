@@ -1,121 +1,89 @@
 # ad996 · 广告导航站（源码仓库）
 
-本仓库为 **[ad996.com](https://ad996.com)** 导航站点的**唯一公开源码**：React 前端 + Python（FastAPI）主站与统计后台 + 部署脚本。  
-详细部署、端口、Nginx、HTTPS 与更新流程见根目录 **[`DEPLOY.md`](DEPLOY.md)**。
+本仓库为 [ad996.com](https://ad996.com) 的公开源码：React（Vite）前端、Python（FastAPI）主站与统计接口、部署脚本与配置模板。  
+部署、端口、Nginx、HTTPS 与运维流程见根目录 [`DEPLOY.md`](DEPLOY.md)。
 
-> 仓库根目录与线上 **`/opt/ai-navigation`** 同构。若你在 **picTent 主仓**开发，对应目录为 `AI导航/`，命令路径见 **`DEPLOY.md`** 里的「双路径」表。
+本仓库根目录与生产环境 **`/opt/ai-navigation`** 目录结构一致。若在 **picTent** 主仓库中开发，对应路径为 **`AI导航/`**；同步命令的差异见 **`DEPLOY.md`** 中的「同步命令」表。
 
 ---
 
-## 推荐协作流程（负责人 + 同事）
+## 协作与发布职责
 
-**分工：同事改代码并推到 GitHub → 负责人拉取最新 → 部署上云。**
-
-这套流程**合理、常见**，适合小团队：Git 做版本真相，负责人把关门禁与线上发布。
-
-| 环节 | 建议 |
+| 角色 | 职责 |
 |------|------|
-| **同事** | 在 `main` 或约定好的功能分支开发；`git pull` 后再改，减少冲突；**改完自测**（`npm run dev`）；`git push` 前确认未提交密钥、`.env`、`node_modules`。 |
-| **改前端页面** | 提交前在本机执行 **`npm run build`**，把生成的 **`emoji-ai-navigator-main/dist/`** 一并提交，这样负责人部署时不必再替你 build（也避免「只提交了源码、线上样式还是旧的」）。若你们约定由负责人统一 build，则同事可不提交 `dist`，但必须在 PR/说明里写清楚「需要 build」。 |
-| **负责人（你）** | `git pull` 后快速浏览本次变更；若含前端改动且同事未提交 `dist`，在发版前 **`cd emoji-ai-navigator-main && npm run build`**；再执行 **`bash deploy/sync-to-server.sh`**（需本机已配置 SSH 密钥，见 `DEPLOY.md`）。 |
-| **再大一点团队** | 可改为：同事提 **Pull Request** → 你 Review 通过后再合并 → 你再部署；需要时再加简单 CI（lint / build）自动检查。 |
+| 开发人员 | 完成功能修改与本地验证；将变更提交并推送至本仓库默认分支（或约定的功能分支）。推送前须确认未包含密钥、凭据、`.env`、运行时数据库及 `node_modules`。 |
+| 发布负责人 | 拉取最新提交；审阅变更摘要；执行构建（当前端 `dist` 未随提交更新时，须在 `emoji-ai-navigator-main` 目录执行 `npm run build`）；按 `DEPLOY.md` 执行 `deploy/sync-to-server.sh` 同步至服务器。 |
 
-**不要提交**：服务器上的 `admin.db`、任何口令密钥、同事本机 `node_modules/`（已在 `.gitignore`）。
+**前端静态资源**：若修改了 `emoji-ai-navigator-main` 内页面或资源，须在提交前执行 **`npm run build`**，并将生成的 **`emoji-ai-navigator-main/dist/`** 纳入版本库，以保证发布与线上一致。若团队约定由发布负责人统一执行构建，须在提交说明或工单中注明。
+
+**规模扩展**：可引入 Pull Request 与代码评审；必要时增加持续集成（构建、静态检查等）。
 
 ---
 
-## Git 提交显示的名字不对？
+## Git 提交者信息
 
-GitHub 上的作者来自执行 `git commit` 那台机器的配置：
+GitHub 上显示的提交作者，取自执行 `git commit` 环境中的 `user.name` 与 `user.email`。
+
+全局配置示例：
 
 ```bash
-git config --global user.name "你的名字或组织常用名"
-git config --global user.email "你的邮箱@example.com"
+git config --global user.name "显示名称"
+git config --global user.email "邮箱@example.com"
 ```
 
-仅本仓库：
+仅在本仓库生效：
 
 ```bash
 cd ad996
-git config user.name "welovesuzhou"
-git config user.email "你的邮箱@example.com"
+git config user.name "显示名称"
+git config user.email "邮箱@example.com"
 ```
 
 ---
 
-## 仓库里有什么
+## 目录说明
 
 | 路径 | 说明 |
 |------|------|
-| `emoji-ai-navigator-main/` | React（Vite）前端；生产静态资源在 `dist/` |
-| `AI导航采集代码/` | Python：`api_server.py`、`admin_api.py`、数据与爬虫脚本 |
-| `deploy/` | `sync-to-server.sh`、`bootstrap-server.sh`、systemd / Nginx 示例 |
+| `emoji-ai-navigator-main/` | 前端工程；生产构建产物位于 `dist/` |
+| `AI导航采集代码/` | 后端与数据：`api_server.py`、`admin_api.py`、数据与采集相关脚本 |
+| `deploy/` | 同步脚本、`systemd` 单元、Nginx 配置示例 |
 
-**不提交**（见根目录 `.gitignore`）：`node_modules/`、`venv/`、`admin.db`、`uploads/` 等。
+勿将 `node_modules/`、`venv/`、`admin.db`、`uploads/` 等纳入版本控制（见 `.gitignore`）。
 
-**关于中文目录名 `AI导航采集代码/`**：在 macOS / Linux / 现代 Windows（UTF-8）下**一般无影响**；本仓库脚本与 systemd 已按当前路径编写。
+目录名 **`AI导航采集代码/`** 使用中文；在 UTF-8 环境下的 macOS、Linux 及当前 Windows 版本下与现有脚本、服务配置兼容。
 
 ---
 
-## 同事第一次拿到代码（本地）
+## 本地运行（开发）
 
-需 [Git](https://git-scm.com/) 与 [Node.js](https://nodejs.org/) LTS。
+依赖：Git、[Node.js](https://nodejs.org/)（LTS）。
 
 ```bash
 git clone https://github.com/welovesuzhou/ad996.git
-cd ad996
-cd emoji-ai-navigator-main
+cd ad996/emoji-ai-navigator-main
 npm install
 npm run dev
 ```
 
-浏览器打开终端里提示的地址（一般为 `http://localhost:8080`）。
+开发服务器默认监听 `http://localhost:8080`；`/api/*` 在 `vite.config.ts` 中代理至本机 `127.0.0.1:8001`（`admin_api`）。
 
 ---
 
-## 负责人：拉代码后部署上云（极简）
+## 生产发布（发布负责人）
 
-见 **[`DEPLOY.md`](DEPLOY.md)**。在**本仓库根目录**：
+操作步骤与前置条件见 [`DEPLOY.md`](DEPLOY.md)。在本仓库根目录执行示例：
 
 ```bash
 git pull
-# 若本次含前端改动且 dist 未更新：
 cd emoji-ai-navigator-main && npm run build && cd ..
 bash deploy/sync-to-server.sh
 ```
 
-首次装机才需要：`bash deploy/bootstrap-server.sh`（见 `DEPLOY.md`）。
+若服务器尚未完成初始化，按 `DEPLOY.md` 执行 `deploy/bootstrap-server.sh`。
 
 ---
 
 ## 许可证
 
-根目录 `LICENSE` 为 MIT。业务数据与线上密钥勿提交本仓库。
-
----
-
-## 给同事的「复制粘贴」说明（发微信群 / 飞书）
-
-```
-【仓库】https://github.com/welovesuzhou/ad996
-
-【你的分工】
-你负责改代码并推到 GitHub；我负责拉最新代码并部署到 ad996.com。
-
-【你每次改完要做什么】
-1）在本机自测：cd ad996/emoji-ai-navigator-main → npm install（第一次）→ npm run dev，浏览器能正常打开页面。
-2）若改了前端页面/样式：在同一目录执行 npm run build，确保 dist 有更新；把 dist 一起 git add 提交（我们约定由我统一 build 的话再跟我说）。
-3）不要提交 node_modules、密码、.env、服务器上的数据库文件。
-4）提交并推送：
-   git add -A
-   git status   （看一眼有没有不该提交的文件）
-   git commit -m "一句话说明改了什么"
-   git push
-
-【我这边会做什么】
-你 push 之后告诉我一声（或发 PR）；我 git pull 后按 DEPLOY.md 同步到服务器。
-
-【你本地更新别人已推的代码】
-   cd ad996 && git pull
-   cd emoji-ai-navigator-main && npm install && npm run dev
-```
+根目录 `LICENSE` 为 MIT。业务数据、密钥及环境相关文件不得提交至本仓库。

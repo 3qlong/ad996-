@@ -3,7 +3,7 @@
 #
 # 用法：
 #   独立仓库 ad996 根目录：bash deploy/sync-to-server.sh
-#   picTent 主仓根目录：    bash AI导航/deploy/sync-to-server.sh
+#   picTent 主仓库根目录：  bash AI导航/deploy/sync-to-server.sh
 #
 # 可选环境变量：
 #   RSYNC_SSH   默认: ssh -i ~/.ssh/pictent_aliyun

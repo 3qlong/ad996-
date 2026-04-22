@@ -4,7 +4,7 @@ api_server.py - AI 导航主服务
   - 前端：emoji-ai-navigator-main/dist/（React SPA）
   - 搜索 API：/health /categories /sources /search（读 ai_navigation.json）
   - 公开统计 API 由独立进程 admin_api:8001 提供；Nginx 将 /api/click、/api/hot-* 反代至 8001
-  - 图标代理：/icon-proxy（仅 ai-bot.cn，避免服务端直连 Google 导致 502）
+  - 图标代理：/icon-proxy（允许公网图片源；拦截内网/回环主机，见 _icon_host_allowed）
 
 Usage:
     python api_server.py --host 127.0.0.1 --port 8096

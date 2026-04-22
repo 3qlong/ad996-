@@ -6,4 +6,4 @@
 - **管理 / 统计 API**：`admin_api.py` + `database.py` — SQLite `admin.db`，对外由 Nginx 将 `/api/click`、`/api/hot-*` 反代至 **8001**。
 - **部署与发布**：见上级 **`../DEPLOY.md`**（含 systemd、Nginx、HTTPS、双进程说明）。
 
-本目录下 **`README.md`（旧版爬虫长文档）** 若与 `../DEPLOY.md` 冲突，**以 `DEPLOY.md` 为准**。
+爬虫细节见 **`README_CRAWLER.md`**。与上级 **`../DEPLOY.md`** 不一致时，以 **`DEPLOY.md`** 为准。

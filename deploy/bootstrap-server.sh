@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# 在服务器上「首次」执行：venv、systemd（主站 + admin_api）、Nginx（需已 rsync 到 /opt/ai-navigation）。
+# 在服务器上初次执行：venv、systemd（主站 + admin_api）、Nginx（需已 rsync 到 /opt/ai-navigation）。
 # 用法（本机，在仓库根目录）：
 #   RSYNC_SSH='ssh -i ~/.ssh/pictent_aliyun' bash deploy/bootstrap-server.sh
-#   picTent 主仓：RSYNC_SSH='...' bash AI导航/deploy/bootstrap-server.sh
+#   picTent 主仓库：RSYNC_SSH='...' bash AI导航/deploy/bootstrap-server.sh
 #
 set -euo pipefail
 RSYNC_SSH="${RSYNC_SSH:-ssh -i ${HOME}/.ssh/pictent_aliyun}"

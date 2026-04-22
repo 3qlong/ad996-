@@ -6,10 +6,12 @@
 
 | 场景 | 同步命令 | 说明 |
 |------|-----------|------|
-| **本独立仓库**（你 `git clone ad996` 后） | `bash deploy/sync-to-server.sh` | 在仓库**根目录**执行 |
-| **picTent 主仓**里开发时 | `bash AI导航/deploy/sync-to-server.sh` | 在 picTent **仓库根目录**执行 |
+| **本仓库（独立克隆）** | `bash deploy/sync-to-server.sh` | 在仓库根目录执行 |
+| **picTent 主仓库** | `bash AI导航/deploy/sync-to-server.sh` | 在 picTent 仓库根目录执行 |
 
 编排脚本（与 picTent 同发）仍见 picTent：`.claude/skills/pictent-deploy/SKILL.md`、`deploy/scripts/sync-pictent-and-ai-nav-cloud.sh`。
+
+协作与发布职责见根目录 **`README.md`**。
 
 > **生产入口**：**`https://ad996.com`**。与 picTent（eyer.tv）同机时，两套目录、两套 systemd、Nginx 按 `server_name` 分流。
 
@@ -103,7 +105,7 @@ curl -sfS "https://ad996.com/api/hot-tools?limit=3"
 
 ## 7. 图标 `/icon-proxy`
 
-由 `api_server.py` 代理外链图片，减轻浏览器直连失败（如部分站点 HTTP/2 异常）；禁止内网/回环地址（防 SSRF）。细节以线上 `api_server.py` 为准。
+由 `api_server.py` 代理允许的远程图片 URL，并拦截内网与回环地址以降低 SSRF 风险；实现规则见 `AI导航采集代码/api_server.py`。
 
 ---
 
