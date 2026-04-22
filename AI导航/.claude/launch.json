@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "AI导航 主站 API (api_server + dist)",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["api_server.py", "--host", "127.0.0.1", "--port", "8096"],
+      "port": 8096,
+      "cwd": "AI导航采集代码"
+    },
+    {
+      "name": "AI导航 Admin API (admin_api 点击/热榜)",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "uvicorn", "admin_api:app", "--host", "127.0.0.1", "--port", "8001"],
+      "port": 8001,
+      "cwd": "AI导航采集代码"
+    },
+    {
+      "name": "emoji-ai-navigator Vite Dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 8080,
+      "cwd": "emoji-ai-navigator-main"
+    }
+  ]
+}

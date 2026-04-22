@@ -1,0 +1,18 @@
+[Unit]
+Description=AI Navigation search API (FastAPI + uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+# 与 SSH 登录用户一致；若不存在请改为 root 或 www-data
+User=cookie
+Group=cookie
+WorkingDirectory=/opt/ai-navigation/AI导航采集代码
+Environment=PYTHONUNBUFFERED=1
+# 8096：与 pictent-api(3000)、admin_api(8001)、其它 8000 段服务错开
+ExecStart=/opt/ai-navigation/venv/bin/python /opt/ai-navigation/AI导航采集代码/api_server.py --host 127.0.0.1 --port 8096
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

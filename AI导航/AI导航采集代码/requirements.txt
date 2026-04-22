@@ -1,0 +1,26 @@
+# AI Navigation Crawler — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# Core HTTP & HTML parsing
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0          # faster HTML parser for BeautifulSoup
+
+# Configuration
+PyYAML>=6.0.1
+
+# API & web server
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.0
+sqlalchemy>=2.0.0
+python-multipart>=0.0.9
+
+# Optional: dynamic page support (uncomment if needed for JS-heavy sites)
+# playwright>=1.40.0   # pip install playwright && playwright install chromium
+# selenium>=4.15.0
+# webdriver-manager>=4.0.1
+
+# Utilities
+urllib3>=2.0.0
+chardet>=5.2.0       # encoding detection

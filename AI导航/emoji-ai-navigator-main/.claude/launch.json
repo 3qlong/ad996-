@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "AI导航 Vite Dev",
+      "runtimeExecutable": "/tmp/ainav-start.sh",
+      "runtimeArgs": [],
+      "port": 8080,
+      "autoPort": true
+    },
+    {
+      "name": "AdminAPI",
+      "runtimeExecutable": "/tmp/run-admin-api.sh",
+      "runtimeArgs": [],
+      "port": 8001,
+      "autoPort": true
+    }
+  ]
+}

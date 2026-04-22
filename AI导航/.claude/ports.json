@@ -1,0 +1,9 @@
+{
+  "ainav_search_api": 8096,
+  "ainav_admin_api": 8001,
+  "ainav_vite_preview": 8080,
+  "ainav_admin_ui_vite": 3120,
+  "pictent_api_default": 3000,
+  "pictent_web_vite": 5173,
+  "note": "8096=api_server+dist；8001=admin_api（点击/热榜，Nginx 将 /api/click 与 /api/hot-* 反代至 8001）；与 pictent 3000 独立"
+}

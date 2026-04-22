@@ -1,0 +1,13 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+logs/
+output/
+admin.db
+uploads/
+
+# 前端依赖（体积大，勿提交；克隆后 cd emoji-ai-navigator-main && npm install）
+node_modules/
+emoji-ai-navigator-main/node_modules/

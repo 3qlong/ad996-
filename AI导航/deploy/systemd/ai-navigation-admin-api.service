@@ -1,0 +1,16 @@
+[Unit]
+Description=AI Navigation admin API (click tracking / hot ranking, FastAPI)
+After=network.target
+
+[Service]
+Type=simple
+User=cookie
+Group=cookie
+WorkingDirectory=/opt/ai-navigation/AI导航采集代码
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/ai-navigation/venv/bin/uvicorn admin_api:app --host 127.0.0.1 --port 8001
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
