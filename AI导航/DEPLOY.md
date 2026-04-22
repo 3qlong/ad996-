@@ -2,6 +2,8 @@
 
 本文档为 **AI导航** 子项目的唯一权威运维说明（与 picTent 主仓 `deploy/` 并列；编排见 `.claude/skills/pictent-deploy/SKILL.md`）。
 
+> **协作源码（GitHub）**：[welovesuzhou/ad996](https://github.com/welovesuzhou/ad996) — 仓库内 `AI导航/` 与本目录内容对齐，便于同事单独克隆与发版；协作说明见该仓库根目录 `README.md`。
+
 > **生产入口**：**`https://ad996.com`**。与 picTent（eyer.tv）同机时，两套目录、两套 systemd、Nginx 按 `server_name` 分流。
 
 ---
