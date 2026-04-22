@@ -1,8 +1,15 @@
 # AI 导航站（ad996.com）部署与更新说明
 
-本文档为 **AI导航** 子项目的唯一权威运维说明（与 picTent 主仓 `deploy/` 并列；编排见 `.claude/skills/pictent-deploy/SKILL.md`）。
+本文档为本仓库（**GitHub：[welovesuzhou/ad996](https://github.com/welovesuzhou/ad996)**）的**唯一权威运维说明**。仓库根目录与线上 **`/opt/ai-navigation`** 目录结构一致（扁平，无外层 `AI导航/` 包裹）。
 
-> **协作源码（GitHub）**：[welovesuzhou/ad996](https://github.com/welovesuzhou/ad996) — 仓库内 `AI导航/` 与本目录内容对齐，便于同事单独克隆与发版；协作说明见该仓库根目录 `README.md`。
+### 命令路径（两种工作区）
+
+| 场景 | 同步命令 | 说明 |
+|------|-----------|------|
+| **本独立仓库**（你 `git clone ad996` 后） | `bash deploy/sync-to-server.sh` | 在仓库**根目录**执行 |
+| **picTent 主仓**里开发时 | `bash AI导航/deploy/sync-to-server.sh` | 在 picTent **仓库根目录**执行 |
+
+编排脚本（与 picTent 同发）仍见 picTent：`.claude/skills/pictent-deploy/SKILL.md`、`deploy/scripts/sync-pictent-and-ai-nav-cloud.sh`。
 
 > **生产入口**：**`https://ad996.com`**。与 picTent（eyer.tv）同机时，两套目录、两套 systemd、Nginx 按 `server_name` 分流。
 
@@ -22,23 +29,23 @@
 
 因此前端在 **https://ad996.com** 同源请求 `/api/*` 时，由 Nginx 分流到 admin_api，**不再**在 `api_server` 内做存根。
 
-端口速查：`AI导航/.claude/ports.json`。
+端口速查：`.claude/ports.json`。
 
 ---
 
 ## 2. 发布内容是否「最新」
 
-1. **前端**：以 **`emoji-ai-navigator-main/dist/`** 为准；改 UI 须 **`cd emoji-ai-navigator-main && npm run build`** 后再 **`bash AI导航/deploy/sync-to-server.sh`**。
+1. **前端**：以 **`emoji-ai-navigator-main/dist/`** 为准；改 UI 须 **`cd emoji-ai-navigator-main && npm run build`** 后再执行上表对应路径的 **`sync-to-server.sh`**。
 2. **主服务代码**：`AI导航采集代码/api_server.py` 等同理随 rsync 更新并重启 `ai-navigation-api`。
-3. **统计库**：`admin.db` 在服务器生成，**勿**用 rsync `--delete` 覆盖线上库；已加入 **`AI导航/.gitignore`**。
+3. **统计库**：`admin.db` 在服务器生成，**勿**用 rsync `--delete` 覆盖线上库；已加入根目录 **`.gitignore`**。
 
 ---
 
 ## 3. 首次部署
 
 1. 服务器：`sudo mkdir -p /opt/ai-navigation && sudo chown $USER:$USER /opt/ai-navigation`（若尚无）。
-2. 本机：`bash AI导航/deploy/sync-to-server.sh`
-3. 本机：`bash AI导航/deploy/bootstrap-server.sh`（安装 venv、**两个** systemd、Nginx 模板）。
+2. 本机（独立仓库根目录）：`bash deploy/sync-to-server.sh`
+3. 本机：`bash deploy/bootstrap-server.sh`（安装 venv、**两个** systemd、Nginx 模板）。
 4. 若缺 venv：`sudo apt install -y python3.12-venv`
 5. pip 慢：`/opt/ai-navigation/venv/bin/pip install -i https://pypi.tuna.tsinghua.edu.cn/simple/ -r .../requirements.txt`
 6. **首次初始化 admin 库（可选）**：在服务器 `AI导航采集代码/` 下执行 `python3 seed_admin.py`（生成分类等种子数据；**不**替代前台工具列表，工具数据仍以 React `src/data/tools.ts` 构建进 dist 为主）。
@@ -56,13 +63,15 @@ sudo certbot --nginx -d ad996.com -d www.ad996.com
 
 ## 4. 日常更新
 
+在**本仓库根目录**：
+
 ```bash
-bash AI导航/deploy/sync-to-server.sh
+bash deploy/sync-to-server.sh
 ```
 
-会：`rsync` 整个 `AI导航/`（已排除 `node_modules`、`venv` 等）→ 远程 `pip install -r requirements.txt` → **`systemctl restart ai-navigation-api ai-navigation-admin-api`**（若已 enable）。
+会：`rsync` 整个仓库根（已排除 `node_modules`、`venv` 等）→ 远程 `pip install -r requirements.txt` → **`systemctl restart ai-navigation-api ai-navigation-admin-api`**（若已 enable）。
 
-与 picTent 同发：`bash deploy/scripts/sync-pictent-and-ai-nav-cloud.sh`。
+与 picTent 同发：在 picTent 根目录 `bash deploy/scripts/sync-pictent-and-ai-nav-cloud.sh`。
 
 ---
 
@@ -94,7 +103,7 @@ curl -sfS "https://ad996.com/api/hot-tools?limit=3"
 
 ## 7. 图标 `/icon-proxy`
 
-仅服务端代理 **`*.ai-bot.cn`**；勿让服务器代拉 Google（易 502）。详见此前实现与 `api_server.py` 白名单。
+由 `api_server.py` 代理外链图片，减轻浏览器直连失败（如部分站点 HTTP/2 异常）；禁止内网/回环地址（防 SSRF）。细节以线上 `api_server.py` 为准。
 
 ---
 

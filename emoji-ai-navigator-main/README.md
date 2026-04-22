@@ -16,7 +16,7 @@ npm run dev
 npm run build
 ```
 
-将生成的 **`dist/`** 随仓库 `AI导航/` 一并同步到服务器（见上级目录 **`AI导航/DEPLOY.md`**）。
+将生成的 **`dist/`** 随本仓库根目录一并同步到服务器（见仓库根目录 **`DEPLOY.md`**；若在 picTent 主仓则为 **`AI导航/DEPLOY.md`**）。
 
 ## 与后端关系
 
@@ -25,4 +25,4 @@ npm run build
 | 页面、静态资源、`/health`、`/search`、`/icon-proxy` | `api_server.py` → **8096** |
 | 点击统计、热榜 `/api/click`、`/api/hot-*` | `admin_api.py` → **8001**（Nginx 按路径分流） |
 
-完整部署、HTTPS、systemd 名称以 **`AI导航/DEPLOY.md`** 为准。
+完整部署、HTTPS、systemd 名称以仓库根目录 **`DEPLOY.md`** 为准（picTent 内为 **`AI导航/DEPLOY.md`**）。

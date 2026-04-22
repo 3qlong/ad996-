@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # 在服务器上「首次」执行：venv、systemd（主站 + admin_api）、Nginx（需已 rsync 到 /opt/ai-navigation）。
-# 用法（本机）：
-#   RSYNC_SSH='ssh -i ~/.ssh/pictent_aliyun' bash AI导航/deploy/bootstrap-server.sh
+# 用法（本机，在仓库根目录）：
+#   RSYNC_SSH='ssh -i ~/.ssh/pictent_aliyun' bash deploy/bootstrap-server.sh
+#   picTent 主仓：RSYNC_SSH='...' bash AI导航/deploy/bootstrap-server.sh
 #
 set -euo pipefail
 RSYNC_SSH="${RSYNC_SSH:-ssh -i ${HOME}/.ssh/pictent_aliyun}"
@@ -16,7 +17,7 @@ UNIT_ADMIN="$ROOT/deploy/systemd/ai-navigation-admin-api.service"
 NGX_SRC="$ROOT/deploy/nginx/ai-navigation.conf"
 
 if [ ! -f "$CODE/api_server.py" ]; then
-  echo "请先在本机运行 AI导航/deploy/sync-to-server.sh 同步代码" >&2
+  echo "请先在本机运行 deploy/sync-to-server.sh（或 picTent 下 AI导航/deploy/sync-to-server.sh）同步代码" >&2
   exit 1
 fi
 

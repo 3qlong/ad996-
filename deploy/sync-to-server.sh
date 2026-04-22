@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# 从本机仓库执行：将「AI导航」目录同步到云端并重启 systemd 服务。
+# 从本机仓库执行：将本仓库根目录（与 /opt/ai-navigation 同构）同步到云端并重启 systemd。
 #
-# 用法（在 picTent 仓库根或任意目录）：
-#   bash AI导航/deploy/sync-to-server.sh
+# 用法：
+#   独立仓库 ad996 根目录：bash deploy/sync-to-server.sh
+#   picTent 主仓根目录：    bash AI导航/deploy/sync-to-server.sh
 #
 # 可选环境变量：
 #   RSYNC_SSH   默认: ssh -i ~/.ssh/pictent_aliyun
@@ -52,7 +53,7 @@ for SVC in ai-navigation-api ai-navigation-admin-api; do
     sudo systemctl restart "\$SVC"
     sudo systemctl --no-pager -l status "\$SVC" | tail -4 || true
   else
-    echo "服务未安装: \$SVC — 首次请 bash AI导航/deploy/bootstrap-server.sh"
+    echo "服务未安装: \$SVC — 首次请 bash deploy/bootstrap-server.sh（picTent 主仓为 bash AI导航/deploy/bootstrap-server.sh）"
   fi
 done
 REMOTE_EOF
