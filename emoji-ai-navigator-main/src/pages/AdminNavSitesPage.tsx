@@ -1,335 +1,368 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
-  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { PlusCircle, Trash2, FilePenLine, ArrowUp, ArrowDown, ExternalLink, Eye, EyeOff, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from '@/components/ui/badge';
-import { allTools } from '@/data/tools';
+} from '@/components/ui/breadcrumb';
+import { ArrowDown, ArrowUp, ExternalLink, FilePenLine, Lock, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  DEFAULT_SEARCH_TABS,
+  loadSearchTabs,
+  resetSearchTabs,
+  saveSearchTabs,
+  SearchTab,
+} from '@/lib/searchTabs';
 
-interface NavSite {
-  id: number;
-  name: string;
-  description: string;
-  logo: string;
-  url: string;
-  category: string;
-  tags: string[];
-  order: number;
-  visible: boolean;
-  emoji: string;
-  upvotes: number;
+interface EditorState {
+  mode: 'create' | 'edit';
+  tab: SearchTab;
 }
 
-// Extract unique categories from allTools
-const allCategories = [...new Set(allTools.map(t => t.category))].sort();
+const BLANK_TAB: SearchTab = { id: '', name: '', url: '', visible: true };
 
-const AdminNavSitesPage = () => {
-  const [sites, setSites] = useState<NavSite[]>(() =>
-    allTools.map((t, i) => ({
-      id: t.id,
-      name: t.name,
-      description: t.description,
-      logo: t.logo,
-      url: t.url,
-      category: t.category,
-      tags: t.tags,
-      order: i + 1,
-      visible: true,
-      emoji: t.emoji,
-      upvotes: t.upvotes,
-    }))
-  );
+const genId = () => `tab_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState('全部');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [currentSite, setCurrentSite] = useState<NavSite | null>(null);
-  const [siteToDelete, setSiteToDelete] = useState<NavSite | null>(null);
+const AdminNavSitesPage: React.FC = () => {
+  const [tabs, setTabs] = useState<SearchTab[]>([]);
+  const [editor, setEditor] = useState<EditorState | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ name?: string; url?: string }>({});
 
-  // Form state
-  const [formName, setFormName] = useState('');
-  const [formDescription, setFormDescription] = useState('');
-  const [formLogo, setFormLogo] = useState('');
-  const [formUrl, setFormUrl] = useState('');
-  const [formCategory, setFormCategory] = useState('');
-  const [formTags, setFormTags] = useState('');
-  const [formEmoji, setFormEmoji] = useState('');
+  useEffect(() => {
+    setTabs(loadSearchTabs());
+  }, []);
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
+  const persist = (next: SearchTab[]) => {
+    setTabs(next);
+    saveSearchTabs(next);
+  };
 
-  const filteredSites = useMemo(() => {
-    let result = sites;
-    if (filterCategory !== '全部') {
-      result = result.filter(s => s.category === filterCategory);
+  const validate = (t: SearchTab): { name?: string; url?: string } => {
+    const e: { name?: string; url?: string } = {};
+    if (!t.name.trim()) e.name = '标签名称不能为空';
+    if (!t.internal) {
+      if (!t.url.trim()) e.url = '搜索 URL 不能为空';
+      else if (!/^https?:\/\//i.test(t.url.trim())) e.url = 'URL 必须以 http(s):// 开头';
     }
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(s => s.name.toLowerCase().includes(q) || s.url.toLowerCase().includes(q));
+    return e;
+  };
+
+  const openCreate = () => {
+    setEditor({ mode: 'create', tab: { ...BLANK_TAB, id: genId() } });
+    setErrors({});
+  };
+  const openEdit = (tab: SearchTab) => {
+    setEditor({ mode: 'edit', tab: { ...tab } });
+    setErrors({});
+  };
+  const closeEditor = () => {
+    setEditor(null);
+    setErrors({});
+  };
+
+  const handleEditorChange = <K extends keyof SearchTab>(key: K, value: SearchTab[K]) => {
+    if (!editor) return;
+    const next = { ...editor.tab, [key]: value };
+    setEditor({ ...editor, tab: next });
+    setErrors(validate(next));
+  };
+
+  const handleEditorSave = () => {
+    if (!editor) return;
+    const e = validate(editor.tab);
+    setErrors(e);
+    if (Object.keys(e).length > 0) {
+      toast.error('请修正表单错误后再保存');
+      return;
     }
-    return result.sort((a, b) => a.order - b.order);
-  }, [sites, filterCategory, searchQuery]);
-
-  const totalPages = Math.ceil(filteredSites.length / pageSize);
-  const paginatedSites = filteredSites.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
-  const handleAddClick = () => {
-    setCurrentSite(null);
-    setFormName(''); setFormDescription(''); setFormLogo(''); setFormUrl(''); setFormCategory('AI办公'); setFormTags(''); setFormEmoji('');
-    setIsDialogOpen(true);
-  };
-
-  const handleEditClick = (site: NavSite) => {
-    setCurrentSite(site);
-    setFormName(site.name); setFormDescription(site.description); setFormLogo(site.logo); setFormUrl(site.url);
-    setFormCategory(site.category); setFormTags(site.tags.join(', ')); setFormEmoji(site.emoji);
-    setIsDialogOpen(true);
-  };
-
-  const handleDeleteClick = (site: NavSite) => {
-    setSiteToDelete(site);
-    setIsAlertOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (siteToDelete) {
-      setSites(sites.filter(s => s.id !== siteToDelete.id));
-      toast.success(`已删除站点 "${siteToDelete.name}"`);
-    }
-    setIsAlertOpen(false);
-  };
-
-  const handleVisibleToggle = (id: number) => {
-    setSites(sites.map(s => s.id === id ? { ...s, visible: !s.visible } : s));
-  };
-
-  const handleSort = (id: number, direction: 'up' | 'down') => {
-    const idx = paginatedSites.findIndex(s => s.id === id);
-    if (idx === -1) return;
-    const currentItem = paginatedSites[idx];
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= paginatedSites.length) return;
-    const swapItem = paginatedSites[swapIdx];
-    setSites(sites.map(s => {
-      if (s.id === currentItem.id) return { ...s, order: swapItem.order };
-      if (s.id === swapItem.id) return { ...s, order: currentItem.order };
-      return s;
-    }));
-  };
-
-  const handleSubmit = () => {
-    const tags = formTags.split(',').map(t => t.trim()).filter(Boolean);
-    if (currentSite) {
-      setSites(sites.map(s => s.id === currentSite.id ? {
-        ...s, name: formName, description: formDescription, logo: formLogo,
-        url: formUrl, category: formCategory, tags, emoji: formEmoji,
-      } : s));
-      toast.success('站点已更新');
+    const t = { ...editor.tab, name: editor.tab.name.trim(), url: editor.tab.url.trim() };
+    if (editor.mode === 'create') {
+      persist([...tabs, t]);
+      toast.success(`已新增「${t.name}」`);
     } else {
-      const newSite: NavSite = {
-        id: sites.length > 0 ? Math.max(...sites.map(s => s.id)) + 1 : 1,
-        name: formName, description: formDescription, logo: formLogo,
-        url: formUrl, category: formCategory, tags, emoji: formEmoji,
-        order: sites.length + 1, visible: true, upvotes: 0,
-      };
-      setSites([...sites, newSite]);
-      toast.success('新站点已添加');
+      persist(tabs.map(x => (x.id === t.id ? t : x)));
+      toast.success(`已保存「${t.name}」`);
     }
-    setIsDialogOpen(false);
+    closeEditor();
+  };
+
+  const handleToggleVisible = (id: string) => {
+    persist(tabs.map(t => (t.id === id ? { ...t, visible: !t.visible } : t)));
+  };
+
+  const handleMove = (id: string, dir: -1 | 1) => {
+    const idx = tabs.findIndex(t => t.id === id);
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= tabs.length) return;
+    // internal 不能被移动到非首位，且不能有其它标签移到它前面
+    if (tabs[idx].internal || tabs[target].internal) return;
+    const next = [...tabs];
+    [next[idx], next[target]] = [next[target], next[idx]];
+    persist(next);
+  };
+
+  const handleDelete = (id: string) => {
+    const t = tabs.find(x => x.id === id);
+    if (!t) return;
+    if (t.internal) {
+      toast.error('站内搜索不可删除');
+      return;
+    }
+    persist(tabs.filter(x => x.id !== id));
+    setDeletingId(null);
+    toast.success(`已删除「${t.name}」`);
+  };
+
+  const handleReset = () => {
+    const next = resetSearchTabs();
+    setTabs(next);
+    toast.success('已恢复为默认标签');
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800">
-      <main className="container mx-auto py-6 md:py-12">
-        <Breadcrumb className="mb-6">
-          <BreadcrumbList>
-            <BreadcrumbItem><BreadcrumbLink asChild><Link to="/admin">后台管理</Link></BreadcrumbLink></BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem><BreadcrumbPage>导航站点管理</BreadcrumbPage></BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+    <div className="space-y-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem><BreadcrumbLink asChild><Link to="/admin">后台管理</Link></BreadcrumbLink></BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem><BreadcrumbPage>搜索标签管理</BreadcrumbPage></BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl md:text-3xl font-bold">导航站点管理</h1>
-            <Button onClick={handleAddClick}><PlusCircle className="mr-2 h-4 w-4" />新增站点</Button>
-          </div>
-
-          {/* Filter bar */}
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input placeholder="搜索站点名称或URL..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pl-10" />
-            </div>
-            <Select value={filterCategory} onValueChange={(v) => { setFilterCategory(v); setCurrentPage(1); }}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="筛选分类" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="全部">全部分类</SelectItem>
-                {allCategories.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Badge variant="outline" className="text-sm">共 {filteredSites.length} 个站点</Badge>
-          </div>
-
-          <div className="border rounded-lg bg-white">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[60px]">显示</TableHead>
-                  <TableHead className="w-[50px]">图标</TableHead>
-                  <TableHead>站点名称</TableHead>
-                  <TableHead>跳转URL</TableHead>
-                  <TableHead>分类</TableHead>
-                  <TableHead className="w-[60px] text-center">排序</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedSites.map((site, index) => (
-                  <TableRow key={site.id} className={!site.visible ? 'opacity-50' : ''}>
-                    <TableCell>
-                      <button onClick={() => handleVisibleToggle(site.id)}>
-                        <div className={`w-9 h-5 rounded-full transition-colors duration-200 flex items-center ${site.visible ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ml-0.5 ${site.visible ? 'translate-x-4' : ''}`} />
-                        </div>
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <Avatar className="h-8 w-8 rounded-md">
-                        <AvatarImage src={site.logo} alt={site.name} className="object-cover" />
-                        <AvatarFallback className="rounded-md text-xs">{site.emoji || site.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    </TableCell>
-                    <TableCell className="font-medium max-w-[160px] truncate">{site.name}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      <a href={site.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-sm flex items-center gap-1">
-                        <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                        <span className="truncate">{site.url}</span>
-                      </a>
-                    </TableCell>
-                    <TableCell><Badge variant="secondary" className="text-xs">{site.category}</Badge></TableCell>
-                    <TableCell className="text-center text-sm text-gray-500">{site.order}</TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleSort(site.id, 'up')} disabled={index === 0} title="上移"><ArrowUp className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleSort(site.id, 'down')} disabled={index === paginatedSites.length - 1} title="下移"><ArrowDown className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleEditClick(site)} title="编辑"><FilePenLine className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(site)} title="删除"><Trash2 className="h-4 w-4 text-red-500" /></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>上一页</Button>
-              <span className="text-sm text-gray-500">第 {currentPage} / {totalPages} 页</span>
-              <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>下一页</Button>
-            </div>
-          )}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+            <Search className="h-6 w-6" />搜索标签管理
+          </h1>
+          <p className="text-sm text-gray-500 mt-1.5">
+            管理首页搜索框下方的搜索渠道标签。支持新增、编辑、排序、显示/隐藏。「站内搜索」为内置标签，不可删除。
+          </p>
         </div>
-      </main>
+        <div className="flex items-center gap-2">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline"><RotateCcw className="h-4 w-4 mr-2" />恢复默认</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>恢复为默认标签？</AlertDialogTitle>
+                <AlertDialogDescription>
+                  当前的自定义配置将被覆盖为默认的 11 个搜索标签，操作不可撤销。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>取消</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReset}>确认恢复</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button onClick={openCreate}><Plus className="h-4 w-4 mr-2" />新增搜索标签</Button>
+        </div>
+      </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm text-gray-600 flex items-center gap-2">
+            共 {tabs.length} 个标签 · {tabs.filter(t => t.visible).length} 个前台显示
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[80px]">显示</TableHead>
+                <TableHead className="w-[160px]">标签名称</TableHead>
+                <TableHead>搜索 URL</TableHead>
+                <TableHead className="w-[140px] text-right">排序</TableHead>
+                <TableHead className="w-[180px] text-right">操作</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tabs.map((t, idx) => (
+                <TableRow key={t.id}>
+                  <TableCell>
+                    <Switch
+                      checked={t.visible}
+                      onCheckedChange={() => handleToggleVisible(t.id)}
+                      aria-label={`切换 ${t.name} 显示状态`}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 font-medium">
+                      {t.name}
+                      {t.internal && (
+                        <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-200">
+                          <Lock className="h-3 w-3" />内置
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="max-w-[420px]">
+                    {t.internal ? (
+                      <span className="text-xs text-gray-400">—（站内路由）</span>
+                    ) : (
+                      <a
+                        href={t.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 truncate max-w-full"
+                      >
+                        <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{t.url}</span>
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleMove(t.id, -1)}
+                      disabled={idx === 0 || tabs[idx - 1]?.internal || t.internal}
+                      title="上移"
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleMove(t.id, 1)}
+                      disabled={idx === tabs.length - 1 || t.internal}
+                      title="下移"
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                  <TableCell className="text-right space-x-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(t)} title="编辑">
+                      <FilePenLine className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletingId(t.id)}
+                      disabled={t.internal}
+                      title={t.internal ? '内置标签不可删除' : '删除'}
+                    >
+                      <Trash2 className={`h-4 w-4 ${t.internal ? 'text-gray-300' : 'text-red-500'}`} />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {tabs.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-sm text-gray-500 py-12">
+                    暂无标签，点击右上角「新增搜索标签」开始
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* 新增 / 编辑弹窗 */}
+      <Dialog open={!!editor} onOpenChange={v => !v && closeEditor()}>
         <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
-            <DialogTitle>{currentSite ? '编辑站点' : '新增站点'}</DialogTitle>
-            <DialogDescription>管理导航站点的基本信息。</DialogDescription>
+            <DialogTitle>{editor?.mode === 'create' ? '新增搜索标签' : '编辑搜索标签'}</DialogTitle>
+            <DialogDescription>
+              关键词会被 URL-encode 后自动拼接到搜索 URL 末尾，请确保 URL 以 <code className="px-1 bg-gray-100 rounded">?q=</code>、<code className="px-1 bg-gray-100 rounded">?wd=</code> 等查询参数结尾。
+            </DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>站点名称 *</Label>
-                <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="站点名称" />
+          {editor && (
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label>标签名称<span className="text-red-500 ml-0.5">*</span></Label>
+                <Input
+                  value={editor.tab.name}
+                  onChange={e => handleEditorChange('name', e.target.value)}
+                  placeholder="例如：谷歌"
+                  maxLength={16}
+                />
+                {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
               </div>
-              <div className="space-y-2">
-                <Label>Emoji</Label>
-                <Input value={formEmoji} onChange={(e) => setFormEmoji(e.target.value)} placeholder="例如：✍️" />
+              <div className="space-y-1.5">
+                <Label>搜索 URL{!editor.tab.internal && <span className="text-red-500 ml-0.5">*</span>}</Label>
+                <Input
+                  value={editor.tab.url}
+                  onChange={e => handleEditorChange('url', e.target.value)}
+                  placeholder="https://www.google.com/search?q="
+                  disabled={editor.tab.internal}
+                />
+                {editor.tab.internal ? (
+                  <p className="text-xs text-gray-500">内置「站内搜索」跳转站内路由，无需 URL</p>
+                ) : (
+                  errors.url ? (
+                    <p className="text-xs text-red-500">{errors.url}</p>
+                  ) : (
+                    <p className="text-xs text-gray-500">示例：百度 https://www.baidu.com/s?wd=</p>
+                  )
+                )}
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t">
+                <Label>前台显示</Label>
+                <Switch
+                  checked={editor.tab.visible}
+                  onCheckedChange={v => handleEditorChange('visible', v)}
+                />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>站点简介 *</Label>
-              <Textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="一句话描述" rows={2} />
-            </div>
-            <div className="space-y-2">
-              <Label>图标URL（支持PNG/JPG/SVG/GIF）</Label>
-              <Input value={formLogo} onChange={(e) => setFormLogo(e.target.value)} placeholder="https://..." />
-              {formLogo && (
-                <div className="flex items-center gap-2 mt-1">
-                  <Avatar className="h-10 w-10 rounded-md">
-                    <AvatarImage src={formLogo} className="object-cover" />
-                    <AvatarFallback className="rounded-md">?</AvatarFallback>
-                  </Avatar>
-                  <span className="text-xs text-gray-400">预览</span>
-                </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>跳转URL *</Label>
-              <Input value={formUrl} onChange={(e) => setFormUrl(e.target.value)} placeholder="https://..." />
-            </div>
-            <div className="space-y-2">
-              <Label>分类 *</Label>
-              <Select value={formCategory} onValueChange={setFormCategory}>
-                <SelectTrigger><SelectValue placeholder="选择分类" /></SelectTrigger>
-                <SelectContent>
-                  {allCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>标签（逗号分隔）</Label>
-              <Input value={formTags} onChange={(e) => setFormTags(e.target.value)} placeholder="例如：AI写作, 效率" />
-            </div>
-          </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>取消</Button>
-            <Button onClick={handleSubmit} disabled={!formName.trim() || !formUrl.trim()}>保存</Button>
+            <Button variant="outline" onClick={closeEditor}>取消</Button>
+            <Button onClick={handleEditorSave}>
+              {editor?.mode === 'create' ? '新增' : '保存修改'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+      {/* 删除确认 */}
+      <AlertDialog open={!!deletingId} onOpenChange={v => !v && setDeletingId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确定要删除吗？</AlertDialogTitle>
-            <AlertDialogDescription>将永久删除站点 "{siteToDelete?.name}"。</AlertDialogDescription>
+            <AlertDialogTitle>
+              确认删除「{tabs.find(t => t.id === deletingId)?.name}」？
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              此操作不可撤销。删除后该标签会立即从前台搜索栏消失。
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600">删除</AlertDialogAction>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => deletingId && handleDelete(deletingId)}
+            >
+              确认删除
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 默认配置提示（当用户清空后引导恢复） */}
+      {tabs.length === 0 && (
+        <div className="text-center">
+          <Button variant="outline" onClick={handleReset}>
+            <RotateCcw className="h-4 w-4 mr-2" />一键恢复 {DEFAULT_SEARCH_TABS.length} 个默认标签
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

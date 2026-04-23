@@ -4,34 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/hooks/use-theme';
 import { triggerEmojiRainFromEvent } from '@/utils/emojiRain';
-
-const searchEngines = [
-  { name: '百度', url: 'https://www.baidu.com/s?wd=' },
-  { name: '谷歌', url: 'https://www.google.com/search?q=' },
-  { name: '花瓣', url: 'https://huaban.com/search?q=' },
-  { name: '站酷', url: 'https://www.zcool.com.cn/search/content?word=' },
-  { name: '淘宝', url: 'https://s.taobao.com/search?page=' },
-  { name: 'C站', url: 'https://civitai.com/?query=' },
-  { name: 'Github', url: 'https://github.com/search?q=' },
-  { name: 'lexica', url: 'https://lexica.art/?q=' },
-  { name: 'deviantar', url: 'https://www.deviantart.com/search?q=' },
-  { name: 'perplexity', url: 'https://www.perplexity.ai/search?q=' },
-];
-
-// 搜索标签数组
-const searchTags = [
-  { name: '站内搜索', icon: null },
-  { name: '百度', icon: null },
-  { name: '谷歌', icon: null },
-  { name: '花瓣', icon: null },
-  { name: '站酷', icon: null },
-  { name: '淘宝', icon: null },
-  { name: 'C站', icon: null },
-  { name: 'Github', icon: null },
-  { name: 'lexica', icon: null },
-  { name: 'deviantar', icon: null },
-  { name: 'perplexity', icon: null },
-];
+import { loadSearchTabs, SEARCH_TABS_EVENT, SearchTab } from '@/lib/searchTabs';
 
 // Craftwork.design 配色方案
 const COLORS = {
@@ -57,8 +30,28 @@ const Header = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [externalSearchTerm, setExternalSearchTerm] = useState('');
-  const [selectedEngine, setSelectedEngine] = useState(searchEngines[0].url);
+  const [searchTabs, setSearchTabs] = useState<SearchTab[]>(() => loadSearchTabs());
+  const [selectedEngine, setSelectedEngine] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState('站内搜索');
+
+  // 订阅后台对搜索标签的修改
+  useEffect(() => {
+    const sync = () => setSearchTabs(loadSearchTabs());
+    window.addEventListener(SEARCH_TABS_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener(SEARCH_TABS_EVENT, sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
+
+  // 仅展示 visible 标签；internal 始终保证在首位
+  const visibleTabs = React.useMemo(() => {
+    const list = searchTabs.filter(t => t.visible);
+    const internal = list.find(t => t.internal);
+    const others = list.filter(t => !t.internal);
+    return internal ? [internal, ...others] : list;
+  }, [searchTabs]);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [showLogoTooltip, setShowLogoTooltip] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -127,23 +120,22 @@ const Header = () => {
   const authText = isAuthenticated ? '用户中心' : '注册/登录';
 
   // 处理搜索标签点击事件
-  const handleTagClick = (tag: { name: string; icon: string | null }) => {
+  const handleTagClick = (tag: SearchTab) => {
     setSelectedTag(tag.name);
 
-    if (tag.name === '站内搜索') {
+    if (tag.internal) {
       // 站内搜索：跳转首页并附加 q 参数
       const q = externalSearchTerm.trim();
       navigate(q ? `/?q=${encodeURIComponent(q)}` : '/');
       return;
     }
 
-    const engine = searchEngines.find(e => e.name === tag.name);
-    if (!engine) return;
-    setSelectedEngine(engine.url);
+    if (!tag.url) return;
+    setSelectedEngine(tag.url);
 
     // 有关键词时直接跳转搜索
     if (externalSearchTerm.trim()) {
-      window.open(engine.url + encodeURIComponent(externalSearchTerm.trim()), '_blank');
+      window.open(tag.url + encodeURIComponent(externalSearchTerm.trim()), '_blank');
     }
   };
 
@@ -277,24 +269,21 @@ const Header = () => {
 
             {/* 分类标签栏 */}
             <div className="flex items-center gap-2 mt-3 md:mt-2 overflow-x-auto flex-nowrap md:flex-wrap scrollbar-hide">
-              {searchTags.map((tag, index) => (
+              {visibleTabs.map((tag) => (
                 <button
-                  key={index}
+                  key={tag.id}
                   onClick={() => handleTagClick(tag)}
                   className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 select-none border flex-shrink-0"
                   style={{
                     backgroundColor: 'transparent',
-                    color: selectedTag === tag.name ? '#00a7f4' : (tag.name === '创建' ? '#3B82F6' : currentColors.text),
-                    borderColor: selectedTag === tag.name ? '#00a7f4' : (tag.name === '创建' ? '#3B82F6' : 'transparent'),
+                    color: selectedTag === tag.name ? '#00a7f4' : currentColors.text,
+                    borderColor: selectedTag === tag.name ? '#00a7f4' : 'transparent',
                     transform: 'translateZ(0)',
                     backfaceVisibility: 'hidden',
                     userSelect: 'none',
                     WebkitUserSelect: 'none'
                   }}
                 >
-                  {tag.icon && (
-                    <span className="w-4 h-4 flex-shrink-0">{tag.icon}</span>
-                  )}
                   <span className="flex-shrink-0">{tag.name}</span>
                 </button>
               ))}

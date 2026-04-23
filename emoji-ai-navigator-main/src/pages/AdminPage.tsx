@@ -10,7 +10,7 @@ const quickLinks = [
   { title: '网站分类管理', desc: '分类名称、图标、排序、显示、工具数', icon: LayoutList, to: '/admin/categories', tone: 'text-blue-500' },
   { title: '网站内容管理', desc: '站点信息、使用技巧、产品介绍、标签', icon: Cog, to: '/admin/tools', tone: 'text-gray-600' },
   { title: '推荐工具管理', desc: '侧边栏推荐位的内容与排序', icon: Star, to: '/admin/recommended', tone: 'text-yellow-500' },
-  { title: '导航站点管理', desc: '外链导航的图标、名称、URL、排序', icon: Compass, to: '/admin/nav-sites', tone: 'text-indigo-500' },
+  { title: '搜索标签管理', desc: '首页搜索框下方渠道标签的名称、URL 与显示', icon: Compass, to: '/admin/nav-sites', tone: 'text-indigo-500' },
   { title: '出海日历管理', desc: '日历事件、类型、国别、描述', icon: Calendar, to: '/admin/calendar', tone: 'text-green-500' },
   { title: '点击数据统计', desc: '今日 / 7天 / 30天 点击排行', icon: BarChart3, to: '/admin/statistics', tone: 'text-purple-500' },
   { title: '页面内容编辑', desc: 'AI榜单/海外创意/日历/商务合作/关于我们', icon: FileText, to: '/admin/pages', tone: 'text-orange-500' },

@@ -20,7 +20,7 @@ const navItems = [
   { to: '/admin/categories', label: '网站分类管理', icon: LayoutList },
   { to: '/admin/tools', label: '网站内容管理', icon: Cog },
   { to: '/admin/recommended', label: '推荐工具管理', icon: Star },
-  { to: '/admin/nav-sites', label: '导航站点管理', icon: Compass },
+  { to: '/admin/nav-sites', label: '搜索标签管理', icon: Compass },
   { to: '/admin/calendar', label: '出海日历管理', icon: Calendar },
   { to: '/admin/statistics', label: '点击数据统计', icon: BarChart3 },
   { to: '/admin/pages', label: '页面内容编辑', icon: FileText },
@@ -36,10 +36,10 @@ const AdminLayout: React.FC = () => {
   );
 
   return (
-    <div className="min-h-[calc(100vh-112px)] flex bg-gray-50 dark:bg-[#1E1E1E]">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-[#1E1E1E]">
       {/* Left Sidebar */}
       <aside className="w-60 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#2C2C2C]">
-        <div className="sticky top-[112px] h-[calc(100vh-112px)] overflow-y-auto p-3">
+        <div className="sticky top-0 h-screen overflow-y-auto p-3">
           <div className="px-3 py-3 mb-2">
             <div className="text-base font-bold text-gray-800 dark:text-gray-100">后台管理</div>
             <div className="text-xs text-gray-500 mt-0.5">AI导航控制台</div>
@@ -72,7 +72,7 @@ const AdminLayout: React.FC = () => {
 
       {/* Main content */}
       <main className="flex-1 min-w-0">
-        <div className="sticky top-[112px] z-10 bg-gray-50/80 dark:bg-[#1E1E1E]/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 px-6 py-3">
+        <div className="sticky top-0 z-10 bg-gray-50/80 dark:bg-[#1E1E1E]/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 px-6 py-3">
           <div className="text-sm text-gray-500">后台管理 / {current?.label || ''}</div>
           <h1 className="text-lg font-semibold mt-0.5 text-gray-800 dark:text-gray-100">
             {current?.label || '后台管理'}

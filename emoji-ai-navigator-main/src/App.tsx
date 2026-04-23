@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import MarketingCalendarPage from "./pages/MarketingCalendarPage";
@@ -37,13 +37,15 @@ const queryClient = new QueryClient();
 const AppInner = () => {
   const { effectiveTheme } = useTheme();
   const isDarkMode = effectiveTheme === 'dark';
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith('/admin');
 
   return (
     <div
-      className="min-h-screen pt-[145px] md:pt-[112px] transition-colors duration-300"
+      className={`min-h-screen transition-colors duration-300 ${isAdmin ? '' : 'pt-[145px] md:pt-[112px]'}`}
       style={{ backgroundColor: isDarkMode ? '#1E1E1E' : '#F9FAFB' }}
     >
-      <Header />
+      {!isAdmin && <Header />}
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/tool/:id" element={<ToolDetailPage />} />
@@ -70,7 +72,7 @@ const AppInner = () => {
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <FloatingActions />
+      {!isAdmin && <FloatingActions />}
     </div>
   );
 };
