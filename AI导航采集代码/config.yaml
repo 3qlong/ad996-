@@ -1,0 +1,164 @@
+# AI Navigation Crawler Configuration
+
+general:
+  output_file: "ai_navigation.json"
+  request_timeout: 15
+  retry_count: 3
+  delay_min: 1.0
+  delay_max: 3.0
+  log_level: "INFO"
+
+user_agents:
+  - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  - "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0"
+  - "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15"
+  - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+favicon_fallback: "https://www.google.com/s2/favicons?domain={domain}&sz=64"
+
+sites:
+  ai_bot_cn:
+    name: "AI工具集"
+    base_url: "https://ai-bot.cn"
+    enabled: true
+    type: "static"
+    category_selector: ".nav-item, .cat-item, li.category"
+    card_selector: ".post-card, .tool-card, article.post"
+    title_selector: ".entry-title a, h2 a, .card-title a"
+    desc_selector: ".entry-summary, .post-excerpt, .card-desc"
+    url_selector: "a[href]"
+    icon_selector: "img.avatar, img.logo, .card-thumb img"
+
+  futurepedia:
+    name: "Futurepedia"
+    base_url: "https://www.futurepedia.io"
+    enabled: true
+    type: "dynamic"
+    api_endpoint: "https://www.futurepedia.io/api/tools"
+    category_selector: "[data-category], .category-tag"
+    card_selector: "[class*='tool-card'], [class*='ToolCard'], article"
+    title_selector: "h3, h2, [class*='title']"
+    desc_selector: "[class*='description'], [class*='desc'], p"
+    url_selector: "a[href]"
+    icon_selector: "img[class*='logo'], img[class*='icon'], img[alt]"
+
+  topai_tools:
+    name: "TopAI.tools"
+    base_url: "https://topai.tools"
+    enabled: true
+    type: "static"
+    card_selector: ".tool-item, .ai-tool, article, .card"
+    title_selector: "h2 a, h3 a, .title a, .tool-name a"
+    desc_selector: ".description, .desc, p.summary, .tool-desc"
+    url_selector: "a[href]"
+    icon_selector: "img.icon, img.logo, img.favicon, .tool-icon img"
+
+  ailetsgo:
+    name: "AILetsGo"
+    base_url: "https://ailetsgo.cn"
+    enabled: true
+    type: "static"
+    card_selector: ".tool-item, .ai-item, article, .item-card, li.tool"
+    title_selector: "h2 a, h3 a, .name a, a.title"
+    desc_selector: ".desc, .description, p, .summary"
+    url_selector: "a[href]"
+    icon_selector: "img, .icon img, .thumb img"
+
+  ai_dh:
+    name: "AI导航"
+    base_url: "https://www.ai-dh.com"
+    enabled: true
+    type: "static"
+    card_selector: ".tool-card, .ai-card, article, .item, li.ai-item"
+    title_selector: "h2 a, h3 a, .title a, strong a"
+    desc_selector: ".desc, .description, .intro, p"
+    url_selector: "a[href]"
+    icon_selector: "img.icon, img.logo, img.favicon, img"
+
+# Category normalization mapping
+# Key: normalized name, Value: list of aliases to merge
+category_mapping:
+  "图像生成":
+    - "图片生成"
+    - "AI绘图"
+    - "AI作图"
+    - "文生图"
+    - "图像创作"
+    - "Image Generation"
+    - "AI Image"
+    - "Art Generation"
+  "文案写作":
+    - "AI写作"
+    - "内容创作"
+    - "文字生成"
+    - "写作助手"
+    - "Copywriting"
+    - "Writing"
+    - "AI Writing"
+  "视频生成":
+    - "AI视频"
+    - "视频创作"
+    - "Video Generation"
+    - "AI Video"
+  "音频与音乐":
+    - "AI音乐"
+    - "音乐生成"
+    - "语音合成"
+    - "Audio"
+    - "Music Generation"
+    - "Voice"
+    - "TTS"
+  "代码开发":
+    - "编程助手"
+    - "AI编程"
+    - "代码生成"
+    - "Coding"
+    - "Development"
+    - "Code Assistant"
+  "对话助手":
+    - "AI聊天"
+    - "聊天机器人"
+    - "Chatbot"
+    - "Chat"
+    - "Conversational AI"
+  "搜索引擎":
+    - "AI搜索"
+    - "智能搜索"
+    - "Search"
+    - "AI Search"
+  "效率工具":
+    - "生产力工具"
+    - "办公助手"
+    - "Productivity"
+    - "Efficiency"
+    - "办公"
+  "设计工具":
+    - "UI设计"
+    - "平面设计"
+    - "Design"
+    - "AI Design"
+  "数据分析":
+    - "数据处理"
+    - "分析工具"
+    - "Data Analysis"
+    - "Analytics"
+  "教育学习":
+    - "AI教育"
+    - "学习助手"
+    - "Education"
+    - "Learning"
+  "营销推广":
+    - "SEO工具"
+    - "广告工具"
+    - "Marketing"
+    - "SEO"
+  "3D建模":
+    - "3D生成"
+    - "三维建模"
+    - "3D Generation"
+    - "3D"
+  "其他":
+    - "Other"
+    - "Miscellaneous"
+    - "未分类"

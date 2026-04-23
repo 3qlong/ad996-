@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI 工具导航搜索</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0f172a;
+      --bg-elevated: #020617;
+      --border-subtle: #1f2937;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.12);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --chip-bg: #111827;
+      --chip-border: #1f2937;
+      --danger: #f97373;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 45%, #000 100%);
+      color: var(--text-main);
+    }
+    .shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 16px 40px;
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .title {
+      font-size: clamp(26px, 3vw, 32px);
+      font-weight: 650;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .title-pill {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--accent);
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 620px;
+    }
+    .search-panel {
+      border-radius: 20px;
+      padding: 16px 16px 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .search-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-input-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid var(--border-subtle);
+    }
+    .search-input-wrap input {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 14px;
+      width: 100%;
+    }
+    .search-input-wrap input::placeholder {
+      color: var(--text-muted);
+    }
+    .search-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 11px;
+    }
+    .btn {
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      border: 1px solid var(--accent);
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: #022c22;
+      font-weight: 550;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn span.key {
+      border-radius: 6px;
+      padding: 2px 6px;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(15, 23, 42, 0.7);
+      font-size: 11px;
+    }
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .chip {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      border: 1px solid var(--chip-border);
+      background: var(--chip-bg);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .chip span.count {
+      font-size: 11px;
+      color: var(--accent);
+    }
+    .chip.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    main {
+      margin-top: 18px;
+    }
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      border-radius: 16px;
+      padding: 12px 12px 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 120px;
+      transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+    }
+    .card:hover {
+      border-color: rgba(34, 197, 94, 0.7);
+      transform: translateY(-1px);
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.65);
+    }
+    .card-header {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .favicon {
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .favicon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 560;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .card-title-row a {
+      color: var(--text-main);
+      text-decoration: none;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .card-title-row a:hover {
+      text-decoration: underline;
+      text-decoration-color: rgba(148, 163, 184, 0.9);
+    }
+    .badge {
+      border-radius: 999px;
+      padding: 1px 6px;
+      font-size: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: #9ca3af;
+      background: rgba(15, 23, 42, 0.9);
+      white-space: nowrap;
+    }
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .card-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2px;
+    }
+    .card-foot-left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+      max-width: 70%;
+    }
+    .pill {
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 10px;
+      border: 1px solid var(--chip-border);
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.9);
+      max-width: 100%;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .card-link {
+      font-size: 11px;
+      color: var(--accent);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .card-link span.icon {
+      font-size: 11px;
+    }
+    .empty,
+    .error {
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .error {
+      color: var(--danger);
+    }
+    @media (max-width: 640px) {
+      .search-panel {
+        padding: 12px 10px 10px;
+        border-radius: 16px;
+      }
+      .search-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn {
+        justify-content: center;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="title">
+        AI 工具导航
+        <span class="title-pill">本地聚合 · 即搜即用</span>
+      </div>
+      <p class="subtitle">
+        汇总 AI 工具集、Futurepedia、TopAI.tools、AILetsGo、AI 导航等多个站点的数据，
+        提供统一搜索与分类浏览。你的浏览器本地渲染，无需额外登录。
+      </p>
+    </header>
+
+    <section class="search-panel">
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <div class="search-icon">⌕</div>
+          <input id="q" placeholder="搜索名称、描述或网址，例如：Midjourney / 写作 / 代码助手…" />
+        </div>
+        <button id="search-btn" class="btn">
+          搜索
+          <span class="key">Enter</span>
+        </button>
+      </div>
+      <div class="filters-row">
+        <div class="chips" id="category-chips"></div>
+        <div class="meta" id="meta-text">加载中…</div>
+      </div>
+    </section>
+
+    <main>
+      <div id="results" class="results-grid"></div>
+      <div id="empty" class="empty" style="display:none;">没有匹配结果，可以尝试换个关键词。</div>
+      <div id="error" class="error" style="display:none;"></div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = "";
+
+    const qInput = document.getElementById("q");
+    const searchBtn = document.getElementById("search-btn");
+    const categoryChips = document.getElementById("category-chips");
+    const resultsEl = document.getElementById("results");
+    const emptyEl = document.getElementById("empty");
+    const errorEl = document.getElementById("error");
+    const metaText = document.getElementById("meta-text");
+
+    let activeCategory = "";
+    let categoriesCache = [];
+
+    async function fetchJSON(path) {
+      const res = await fetch(API_BASE + path);
+      if (!res.ok) {
+        throw new Error(`请求失败 ${res.status}`);
+      }
+      return await res.json();
+    }
+
+    function renderCategories(cats) {
+      categoriesCache = cats;
+      categoryChips.innerHTML = "";
+      const allChip = document.createElement("button");
+      allChip.className = "chip" + (activeCategory === "" ? " active" : "");
+      allChip.textContent = "全部分类";
+      allChip.addEventListener("click", () => {
+        activeCategory = "";
+        updateCategoryActive();
+        runSearch();
+      });
+      categoryChips.appendChild(allChip);
+
+      cats.slice(0, 14).forEach(c => {
+        const chip = document.createElement("button");
+        chip.className = "chip" + (c.category === activeCategory ? " active" : "");
+        chip.dataset.category = c.category;
+        chip.innerHTML = `${c.category}<span class="count">${c.count}</span>`;
+        chip.addEventListener("click", () => {
+          activeCategory = (activeCategory === c.category) ? "" : c.category;
+          updateCategoryActive();
+          runSearch();
+        });
+        categoryChips.appendChild(chip);
+      });
+    }
+
+    function updateCategoryActive() {
+      document.querySelectorAll(".chip").forEach(el => {
+        const cat = el.dataset.category || "";
+        if (!cat && activeCategory === "") {
+          el.classList.add("active");
+        } else if (cat === activeCategory) {
+          el.classList.add("active");
+        } else {
+          el.classList.remove("active");
+        }
+      });
+    }
+
+    function renderResults(data, q) {
+      resultsEl.innerHTML = "";
+      errorEl.style.display = "none";
+      if (!data || !Array.isArray(data.items)) {
+        emptyEl.style.display = "block";
+        return;
+      }
+      if (data.items.length === 0) {
+        emptyEl.style.display = "block";
+        metaText.textContent = q ? `找到 0 条结果` : `共收录 ${data.total} 条工具`;
+        return;
+      }
+      emptyEl.style.display = "none";
+
+      data.items.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const header = document.createElement("div");
+        header.className = "card-header";
+
+        const favicon = document.createElement("div");
+        favicon.className = "favicon";
+        const img = document.createElement("img");
+        img.loading = "lazy";
+        img.src = item.icon || `https://www.google.com/s2/favicons?domain=${encodeURIComponent(item.url)}&sz=64`;
+        img.alt = item.name;
+        favicon.appendChild(img);
+
+        const titleWrap = document.createElement("div");
+        titleWrap.className = "card-title";
+        const titleRow = document.createElement("div");
+        titleRow.className = "card-title-row";
+        const link = document.createElement("a");
+        link.href = item.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = item.name;
+        titleRow.appendChild(link);
+        const source = document.createElement("span");
+        source.className = "badge";
+        source.textContent = item.source || "来源不详";
+        titleRow.appendChild(source);
+        titleWrap.appendChild(titleRow);
+
+        if (item.category) {
+          const catBadge = document.createElement("span");
+          catBadge.className = "badge";
+          catBadge.textContent = item.category;
+          titleWrap.appendChild(catBadge);
+        }
+
+        header.appendChild(favicon);
+        header.appendChild(titleWrap);
+
+        const desc = document.createElement("p");
+        desc.className = "card-desc";
+        desc.textContent = item.description || "暂无简介。";
+
+        const foot = document.createElement("div");
+        foot.className = "card-foot";
+
+        const left = document.createElement("div");
+        left.className = "card-foot-left";
+        if (item.original_category && item.original_category !== item.category) {
+          const pill = document.createElement("span");
+          pill.className = "pill";
+          pill.textContent = item.original_category;
+          left.appendChild(pill);
+        }
+        const host = (() => {
+          try {
+            return new URL(item.url).host.replace(/^www\./, "");
+          } catch {
+            return "";
+          }
+        })();
+        if (host) {
+          const pill = document.createElement("span");
+          pill.className = "pill";
+          pill.textContent = host;
+          left.appendChild(pill);
+        }
+
+        const visit = document.createElement("a");
+        visit.className = "card-link";
+        visit.href = item.url;
+        visit.target = "_blank";
+        visit.rel = "noopener noreferrer";
+        visit.innerHTML = `<span class="icon">↗</span> 打开`;
+
+        foot.appendChild(left);
+        foot.appendChild(visit);
+
+        card.appendChild(header);
+        card.appendChild(desc);
+        card.appendChild(foot);
+
+        resultsEl.appendChild(card);
+      });
+
+      metaText.textContent = q
+        ? `找到 ${data.total} 条匹配结果`
+        : `共收录 ${data.total} 条工具`;
+    }
+
+    async function runSearch() {
+      const q = qInput.value.trim();
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      if (activeCategory) params.set("category", activeCategory);
+      params.set("limit", "60");
+      const url = "/search?" + params.toString();
+      try {
+        metaText.textContent = "搜索中…";
+        const data = await fetchJSON(url);
+        renderResults(data, q);
+      } catch (e) {
+        console.error(e);
+        errorEl.textContent = "搜索接口请求失败，请确认 API 服务已启动。";
+        errorEl.style.display = "block";
+      }
+    }
+
+    async function bootstrap() {
+      try {
+        const cats = await fetchJSON("/categories");
+        renderCategories(cats);
+        // 初始加载一波数据
+        await runSearch();
+      } catch (e) {
+        console.error(e);
+        errorEl.textContent = "无法加载分类信息，请确认 API 服务已启动。";
+        errorEl.style.display = "block";
+      }
+    }
+
+    searchBtn.addEventListener("click", () => runSearch());
+    qInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        runSearch();
+      }
+    });
+
+    bootstrap();
+  </script>
+</body>
+</html>
+

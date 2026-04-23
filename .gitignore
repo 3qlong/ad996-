@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+venv/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database files
+*.db
+*.sqlite
+
+# Uploads
+uploads/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build files
+/dist/
+/build/
+
+# Log files
+logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Coverage directory
+coverage/
+
+# TypeScript
+*.tsbuildinfo
