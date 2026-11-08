@@ -1313,3 +1313,4 @@
 {"name": "auxi", "description": "功能强大的PowerPoint AI插件", "icon_url": "https://ai-bot.cn/wp-content/uploads/2023/04/auxi-icon.png", "category": "AI PPT工具，AI幻灯片制作和演示文", "url": "https://www.auxi.ai"}
 {"name": "AI灵感PPT", "description": "免费高效的AIPPT生成工具", "icon_url": "https://ai-bot.cn/wp-content/uploads/2024/08/lgppt-logo.png", "category": "AI PPT工具，AI幻灯片制作和演示文", "url": "https://www.lgppt.cn/?utm_source=ai-bot.cn"}
 {"name": "MindShow", "description": "国内独立开发者开发的输入内容自动生成演示工具", "icon_url": "https://ai-bot.cn/wp-content/uploads/2023/04/mindshow-icon.png", "category": "AI PPT工具，AI幻灯片制作和演示文", "url": "https://www.mindshow.fun/?ref=ai-bot.cn"}
+{"name":"agent-qa","description":"自然语言网页与移动端QA，持久记忆与经验证的自我改进，附步骤及截图。","icon_url":"","category":"AI智能体","url":"https://vostride.com","source":"https://vostride.com"}
