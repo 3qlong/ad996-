@@ -24361,4 +24361,28 @@ export const allTools = [
       awards: '暂无。',
     },
   },
+  {
+    "id": 1434,
+    "logo": "",
+    "url": "https://vostride.com",
+    "emoji": "🧪",
+    "name": "agent-qa",
+    "description": "自然语言网页与移动端QA，持久记忆与经验证的自我改进，附步骤及截图。",
+    "tags": [
+      "QA",
+      "网页测试",
+      "移动端测试",
+      "持久记忆",
+      "自我改进",
+      "MCP"
+    ],
+    "category": "AI智能体",
+    "upvotes": 0,
+    "longDescription": "agent-qa通过自然语言执行网页、Android与iOS测试，支持本地CLI、仪表板和MCP。memidex持久记忆保留事实与流程，经验证的自我改进结合反馈复用有效经验，并保留步骤和截图。许可证为FSL-1.1-ALv2，包含竞争性用途限制；模型提供商及设备环境费用另计。",
+    "details": {
+      "usageTips": "通过官方快速开始配置本地环境与模型提供商。使用自然语言描述测试任务，并检查保存的步骤、截图和验证结果。",
+      "productIntro": "面向网页与移动端的自然语言QA工具，提供持久记忆、经验证的自我改进和可检查的测试证据。",
+      "awards": ""
+    }
+  }
 ];

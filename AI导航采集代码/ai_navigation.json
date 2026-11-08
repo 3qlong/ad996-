@@ -11833,5 +11833,14 @@
     "url": "https://www.mindshow.fun/?ref=ai-bot.cn",
     "icon": "https://ai-bot.cn/wp-content/uploads/2023/04/mindshow-icon.png",
     "source": "ai-bot.cn"
+  },
+  {
+    "category": "AI智能体",
+    "original_category": "AI智能体",
+    "name": "agent-qa",
+    "description": "自然语言网页与移动端QA，持久记忆与经验证的自我改进，附步骤及截图。",
+    "url": "https://vostride.com",
+    "icon": "",
+    "source": "https://vostride.com"
   }
 ]
